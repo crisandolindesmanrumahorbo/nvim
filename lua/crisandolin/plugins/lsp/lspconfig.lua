@@ -64,7 +64,7 @@ return {
 
         opts.desc = "Restart LSP"
         keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
-        
+
         -- Toggle inlay hints
         if vim.lsp.inlay_hint then
           opts.desc = "Toggle Inlay Hints"
@@ -126,25 +126,6 @@ return {
           },
         })
       end,
-      ["rust_analyzer"] = function()
-        lspconfig.rust_analyzer.setup({
-          capabilities = capabilities,
-          settings = {
-            ["rust-analyzer"] = {
-              checkOnSave = {
-                command = "clippy",
-              },
-              diagnostics = {
-                enable = true,
-                experimental = {
-                  enable = true,
-                },
-              },
-            },
-          },
-        })
-      end,
     })
   end,
 }
-

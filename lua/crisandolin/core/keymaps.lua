@@ -15,7 +15,7 @@ keymap.set("n", "<leader>st", function()
   vim.cmd.term()
   vim.cmd.wincmd("J")
   vim.api.nvim_win_set_height(0, 10)
-end)
+end, {desc = "Open Terminal"})
 
 keymap.set("i", "jk", "<ESC>", { desc = "Exit insert mode with jk" })
 

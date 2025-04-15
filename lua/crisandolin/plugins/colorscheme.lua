@@ -38,6 +38,32 @@ return {
         colors.fg_gutter = fg_gutter
         colors.fg_sidebar = fg_dark
       end,
+
+      -- Rust color scheme
+      on_highlights = function(hl, c)
+        -- LSP suggestion menu improvements
+        hl.Pmenu = { bg = c.bg_highlight } -- Background of completion menu
+        hl.PmenuSel = { bg = c.bg_visual, fg = c.fg } -- Selected item
+        hl.PmenuSbar = { bg = c.bg_dark } -- Scrollbar background
+        hl.PmenuThumb = { bg = c.fg_gutter } -- Scrollbar thumb
+
+        -- LSP documentation hover window
+        hl.LspFloatWinNormal = { bg = c.bg_dark, fg = c.fg }
+        hl.LspFloatWinBorder = { fg = c.border }
+
+        -- Inlay hints (if using Rust Analyzer's inlay hints)
+        hl.LspInlayHint = { bg = c.none, fg = c.fg_gutter, italic = true }
+
+        -- LSP reference highlight
+        hl.LspReferenceText = { bg = c.bg_visual }
+        hl.LspReferenceRead = { bg = c.bg_visual }
+        hl.LspReferenceWrite = { bg = c.bg_visual }
+
+        -- Specific Rust LSP improvements
+        hl["@lsp.type.function.rust"] = { link = "@function" } -- Rust functions
+        hl["@lsp.type.method.rust"] = { link = "@method" } -- Rust methods
+        hl["@lsp.typemod.function.defaultLibrary.rust"] = { fg = c.blue } -- Library functions like Box::new
+      end,
     })
 
     vim.cmd("colorscheme tokyonight")
