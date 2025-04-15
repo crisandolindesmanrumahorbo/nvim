@@ -17,6 +17,51 @@ return {
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
     local keymap = vim.keymap -- for conciseness
+    
+    -- Custom handler for import diagnostics
+    local function show_import_diagnostics(bufnr)
+      local params = vim.lsp.util.make_text_document_params()
+      vim.lsp.buf_request(bufnr, 'textDocument/codeAction', {
+        textDocument = params,
+        range = {
+          start = { line = 0, character = 0 },
+          ['end'] = { line = 0, character = 0 },
+        },
+        context = {
+          diagnostics = {},
+          only = { 'source.addMissingImports.ts' }
+        },
+      }, function(err, actions)
+        if err or not actions then return end
+        
+        local import_paths = {}
+        for _, action in ipairs(actions) do
+          if action.kind == 'source.addMissingImports.ts' then
+            for _, edit in ipairs(action.edit.changes or {}) do
+              for _, text_edit in ipairs(edit) do
+                table.insert(import_paths, text_edit.newText)
+              end
+            end
+          end
+        end
+        
+        if #import_paths > 0 then
+          local ns = vim.api.nvim_create_namespace('import_diagnostics')
+          vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+          
+          local lines = { 'Missing imports:' }
+          for _, path in ipairs(import_paths) do
+            table.insert(lines, '• '..path:gsub('\n', ''))
+          end
+          
+          vim.api.nvim_buf_set_extmark(bufnr, ns, 0, 0, {
+            virt_text = { { table.concat(lines, '\n'), 'Comment' } },
+            virt_text_pos = 'right_align',
+          })
+        end
+      end)
+    end
+
 
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", {}),
@@ -74,6 +119,14 @@ return {
             vim.lsp.inlay_hint.enable(not enabled, { bufnr = bufnr })
           end, opts)
         end
+
+        -- Missing Import
+        opts.desc = "Show missing imports"
+        keymap.set("n", "<leader>mi", function()
+          show_import_diagnostics(ev.buf)
+          vim.diagnostic.open_float({ scope = 'line' })
+        end, opts)
+        
       end,
     })
 
@@ -96,11 +149,42 @@ return {
     end
 
     mason_lspconfig.setup_handlers({
-      -- default handler for installed servers
       function(server_name)
-        lspconfig[server_name].setup({
+        local config = {
           capabilities = capabilities,
-        })
+        }
+
+        -- TypeScript-specific configuration
+        if server_name == "tsserver" then
+          config.settings = {
+            typescript = {
+              suggest = {
+                autoImports = true,
+                includeCompletionsForModuleExports = true,
+              },
+              preferences = {
+                includeCompletionsForImportStatements = true,
+                importModuleSpecifierPreference = "shortest",
+              }
+            },
+            javascript = {
+              suggest = {
+                autoImports = true,
+                includeCompletionsForModuleExports = true,
+              }
+            }
+          }
+          config.handlers = {
+            ["textDocument/publishDiagnostics"] = vim.lsp.with(
+              vim.lsp.diagnostic.on_publish_diagnostics, {
+                update_in_insert = true,
+                severity_sort = true,
+              }
+            ),
+          }
+        end
+
+        lspconfig[server_name].setup(config)
       end,
       ["emmet_ls"] = function()
         -- configure emmet language server
@@ -125,6 +209,15 @@ return {
             },
           },
         })
+      end,
+    })
+
+    vim.api.nvim_create_autocmd('BufWritePre', {
+      pattern = { '*.ts', '*.tsx', '*.js', '*.jsx' },
+      callback = function(args)
+        if vim.bo[args.buf].filetype == "typescript" or vim.bo[args.buf].filetype == "javascript" then
+          show_import_diagnostics(args.buf)
+        end
       end,
     })
   end,
