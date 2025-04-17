@@ -114,6 +114,8 @@ return {
         -- Toggle inlay hints
         if vim.lsp.inlay_hint then
           opts.desc = "Toggle Inlay Hints"
+          vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+
           keymap.set("n", "<leader>gL", function()
             local bufnr = ev.buf
             local enabled = vim.lsp.inlay_hint.is_enabled and vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
@@ -203,6 +205,18 @@ return {
               },
               completion = {
                 callSnippet = "Replace",
+              },
+            },
+          },
+        })
+      end,
+      ["rust_analyzer"] = function()
+        lspconfig["rust_analyzer"].setup({
+          capabilities = capabilities,
+          settings = {
+            ["rust-analyzer"] = {
+              checkOnSave = {
+                command = "clippy",
               },
             },
           },
