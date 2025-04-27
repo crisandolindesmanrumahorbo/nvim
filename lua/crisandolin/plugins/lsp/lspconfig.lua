@@ -216,6 +216,9 @@ return {
           settings = {
             ["rust-analyzer"] = {
               checkOnSave = true, -- simple boolean for basic checking
+              cargo = {
+                allFeatures = true,
+              },
             },
           },
         })
