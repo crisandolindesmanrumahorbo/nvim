@@ -223,6 +223,21 @@ return {
           },
         })
       end,
+      ["gopls"] = function()
+        lspconfig["gopls"].setup({
+          capabilities = capabilities,
+          filetypes = { "go", "gomod", "gowork" },
+          settings = {
+            gopls = {
+              analyses = {
+                unusedparams = true,
+              },
+              staticcheck = true,
+              gofumpt = true,
+            },
+          },
+        })
+      end,
     })
 
     vim.api.nvim_create_autocmd("BufWritePre", {

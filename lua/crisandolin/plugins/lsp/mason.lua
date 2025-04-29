@@ -33,7 +33,8 @@ return {
         "lua_ls",
         "emmet_ls",
         "eslint",
-        "rust_analyzer"
+        "rust_analyzer",
+        "gopls",
       },
     })
 
